@@ -15,38 +15,89 @@
       height: 100vh;
       margin: 0;
       color: #333;
+      overflow: hidden;
     }
+
     h1 {
       color: #fff;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 40px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+      animation: fadeDown 1s ease forwards;
+      opacity: 0;
     }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     button {
       background-color: #ff7b00;
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
+      padding: 14px 30px;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       transition: 0.3s;
+      margin-top: 20px;
+      animation: fadeUp 1.2s ease forwards;
+      opacity: 0;
     }
+
     button:hover {
       background-color: #ff9d3a;
-      transform: scale(1.1);
+      transform: scale(1.1) rotate(-1deg);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
     }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     #message {
-      margin-top: 30px;
-      font-size: 22px;
+      margin-top: 40px;
+      font-size: 26px;
       color: white;
       font-style: italic;
       text-align: center;
       max-width: 600px;
-      transition: opacity 0.6s ease;
       opacity: 0;
+      transform: scale(0.9);
     }
+
+    /* Hiệu ứng hiện thông điệp */
     #message.show {
-      opacity: 1;
+      animation: popIn 0.6s ease forwards;
     }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      60% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Hiệu ứng gõ chữ */
+    .typing {
+      border-right: 3px solid white;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 3s steps(40, end) forwards,
+                 blink 0.6s step-end infinite;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink {
+      from, to { border-color: transparent; }
+      50% { border-color: white; }
+    }
+
   </style>
 </head>
 <body>
@@ -55,31 +106,41 @@
   <div id="message"></div>
 
   <script>
+    const quotes = [
+      "Người thầy là ngọn hải đăng soi sáng hành trình tri thức của bao thế hệ.",
+      "Không có thầy cô, chúng ta không thể viết nên câu chuyện của chính mình.",
+      "Một lời dạy của thầy cô có thể thay đổi cả cuộc đời của một con người.",
+      "Công ơn thầy cô như trời biển – tri thức thầy cô trao là hành trang vững vàng nhất.",
+      "Thầy cô là người gieo hạt mầm ước mơ trong tâm hồn học trò.",
+      "Kính chúc thầy/cô luôn mạnh khỏe, hạnh phúc và thành công trong sự nghiệp trồng người.",
+      "Cảm ơn thầy/cô đã luôn quan tâm và dìu dắt lớp chúng em.",
+      "Chúc cô luôn xinh đẹp, thầy luôn phong độ và đầy nhiệt huyết!",
+      "Teachers are the ones who sow seeds of dreams in students’ hearts.",
+      "A teacher's words can change a person's life forever."
+    ];
+
     function showMessage() {
-      const quotes = [
-        "Người thầy là ngọn hải đăng soi sáng hành trình tri thức của bao thế hệ.",
-        "Không có thầy cô, chúng ta không thể viết nên câu chuyện của chính mình.",
-        "Một lời dạy của thầy cô có thể thay đổi cả cuộc đời của một con người.",
-        "Công ơn thầy cô như trời biển – tri thức thầy cô trao là hành trang vững vàng nhất.",
-        "Thầy cô là người gieo hạt mầm ước mơ trong tâm hồn học trò.",
-        "Kính chúc thầy/cô luôn mạnh khỏe, hạnh phúc và thành công trong sự nghiệp trồng người cao quý. Chúc thầy/cô một ngày 20/11 thật ý nghĩa!",
-        "Cảm ơn thầy/cô đã luôn quan tâm và dìu dắt lớp chúng em. Chúc thầy/cô ngày 20/11 tràn ngập niềm vui và tự hào.",
-        "Chúc thầy/cô lúc nào cũng trẻ trung, yêu đời để tụi em còn được “hành” dài dài ạ!",
-        "Chúc cô ngày 20/11 xinh đẹp hơn mọi ngày, còn thầy thì phong độ như ngày mới ra trường!",
-        "A teacher is a beacon that illuminates the journey of knowledge for many generations.",
-        "Without teachers, we cannot write our own story.",
-        "A teacher's teaching can change a person's life.",
-        "The gratitude to teachers is as great as the ocean - the knowledge they give is the most solid luggage.",
-        "Teachers are the ones who sow the seeds of dreams in the souls of students.",
-        "I wish you good health, happiness and success in your noble career of educating people. I wish you a meaningful November 20th!",
-        "Thank you for always caring and guiding our class. I wish you a November 20th filled with joy and pride.",
-        "I wish you to always be young and love life so that we can travel for a long time!",
-        "I wish you a more beautiful November 20th than usual, and you to be as handsome as the day you graduated!"
-      ];
-      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-      const messageDiv = document.getElementById("message");
-      messageDiv.innerText = randomQuote;
-      messageDiv.classList.add("show");
+      const msg = document.getElementById("message");
+
+      // Reset hiệu ứng
+      msg.classList.remove("show");
+      msg.innerHTML = "";
+      msg.style.opacity = "1";
+
+      // Lấy câu ngẫu nhiên
+      const quote = quotes[Math.floor(Math.random() * quotes.length)];
+
+      // Tạo hiệu ứng đánh máy
+      const span = document.createElement("span");
+      span.classList.add("typing");
+      span.textContent = quote;
+
+      msg.appendChild(span);
+
+      // Thêm hiệu ứng pop-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, 10);
     }
   </script>
 </body>
