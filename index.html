@@ -4,8 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bài Toán Tù Nhân - Chơi Ngay</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script>
+        // Khởi tạo Firebase nếu có
+        let db = null;
+        let useLocalStorage = true;
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyAKn7h7v-D7H5_5J5K5J5K5J5K5J5K5J5K",
+                authDomain: "prisoners-game.firebaseapp.com",
+                projectId: "prisoners-game-a1b2c",
+                storageBucket: "prisoners-game-a1b2c.appspot.com",
+                messagingSenderId: "123456789",
+                databaseURL: "https://prisoners-game-a1b2c-default-rtdb.firebaseio.com"
+            };
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            useLocalStorage = false;
+        } catch (e) {
+            console.log('Firebase không khả dụng, sử dụng localStorage thay thế');
+            useLocalStorage = true;
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -202,6 +224,7 @@
         }
 
         .choice-status {
+            display: none !important;
             margin-top: 15px;
             padding: 15px;
             border-radius: 10px;
@@ -212,17 +235,21 @@
 
         .choice-status.waiting {
             background: #fff3cd;
-            color: #856404;
+            color: #eeb60d;
         }
 
         .choice-status.done {
             background: #d4edda;
-            color: #155724;
+            color: #0feb42;
         }
 
         .choice-status.opponent-waiting {
             background: #f8d7da;
-            color: #721c24;
+            color: #e60d23;
+        }
+
+        .break-section[style*="display: flex"] {
+            display: flex !important;
         }
 
         .result-section {
@@ -233,6 +260,7 @@
             border-left: 4px solid #ffc107;
             text-align: center;
             display: none;
+            position: relative;
         }
 
         .result-section.show {
@@ -242,13 +270,13 @@
         .result-title {
             font-size: 18px;
             font-weight: bold;
-            color: #856404;
+            color: #d8a305;
             margin-bottom: 15px;
         }
 
         .result-details {
             font-size: 16px;
-            color: #856404;
+            color: #ecb50e;
             margin: 10px 0;
         }
 
@@ -362,6 +390,59 @@
                 font-size: 22px;
             }
         }
+
+        .role-btn {
+            padding: 20px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .role-btn.player1-btn {
+            background: #667eea;
+        }
+
+        .role-btn.player2-btn {
+            background: #764ba2;
+        }
+
+        .role-btn.spectator-btn {
+            background: #ff6b6b;
+        }
+
+        .role-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .role-btn.selected {
+            border: 3px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .role-btn.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #4CAF50;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid white;
+        }
     </style>
 </head>
 <body>
@@ -371,27 +452,34 @@
 
         <!-- Role Selection Section -->
         <div id="roleSection" style="text-align: center; padding: 40px 0;">
-            <h2 style="color: #333; margin-bottom: 30px; font-size: 24px;">Chọn Vai Trò Của Bạn</h2>
-            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                <button style="padding: 20px 40px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; background: #667eea; color: white; cursor: pointer; transition: all 0.3s ease;" 
+            <h2 style="color: #333; margin-bottom: 10px; font-size: 24px;">Chọn Vai Trò Của Bạn</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 14px;">Bạn muốn làm gì?</p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
+                <button class="role-btn player1-btn" id="rolePlayer1" 
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(102, 126, 234, 0.3)'" 
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                    onmouseout="this.style.transform=this.classList.contains('selected') ? 'scale(1.05)' : 'translateY(0)'; this.style.boxShadow=this.classList.contains('selected') ? '0 0 20px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2)' : 'none'"
                     onclick="selectRole('player1')">
                     👤 Người Chơi 1
                 </button>
-                <button style="padding: 20px 40px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; background: #764ba2; color: white; cursor: pointer; transition: all 0.3s ease;" 
+                <button class="role-btn player2-btn" id="rolePlayer2" 
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(118, 75, 162, 0.3)'" 
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                    onmouseout="this.style.transform=this.classList.contains('selected') ? 'scale(1.05)' : 'translateY(0)'; this.style.boxShadow=this.classList.contains('selected') ? '0 0 20px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2)' : 'none'"
                     onclick="selectRole('player2')">
                     👤 Người Chơi 2
                 </button>
-                <button style="padding: 20px 40px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; background: #ff6b6b; color: white; cursor: pointer; transition: all 0.3s ease;" 
+                <button class="role-btn spectator-btn" id="roleSpectator" 
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(255, 107, 107, 0.3)'" 
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                    onmouseout="this.style.transform=this.classList.contains('selected') ? 'scale(1.05)' : 'translateY(0)'; this.style.boxShadow=this.classList.contains('selected') ? '0 0 20px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2)' : 'none'"
                     onclick="selectRole('spectator')">
-                    📊 Chủ Trò
+                    �️ Người Xem
                 </button>
             </div>
+            <button style="padding: 15px 50px; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; background: #4CAF50; color: white; cursor: pointer; transition: all 0.3s ease;" 
+                id="startBtn"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(76, 175, 80, 0.3)'" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                ▶️ Bắt Đầu
+            </button>
         </div>
 
         <div id="loadingSection" class="loading">
@@ -412,6 +500,36 @@
                 <div class="round-info">
                     Vòng: <span id="currentRound">0</span> / <span id="totalRounds">0</span>
                 </div>
+                
+                <!-- Bảng Tổng Điểm -->
+                <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; border: 2px solid #667eea;">
+                    <h4 style="margin: 0 0 12px 0; color: #333; text-align: center;">📊 Tổng Điểm</h4>
+                    <div style="display: flex; justify-content: space-around; gap: 15px;">
+                        <div style="flex: 1; text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #667eea;">
+                            <div style="font-size: 12px; color: #666;">Player 1</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #667eea;" id="gameScore1">0</div>
+                        </div>
+                        <div style="flex: 1; text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #764ba2;">
+                            <div style="font-size: 12px; color: #666;">Player 2</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #764ba2;" id="gameScore2">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lịch Sử Lựa Chọn -->
+                <div style="margin-top: 15px; padding: 15px; background: #f9f9f9; border-radius: 10px;">
+                    <h4 style="margin: 0 0 12px 0; color: #333; text-align: center;">📈 Lịch Sử Lựa Chọn</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 200px; overflow-y: auto;">
+                        <div style="border-right: 1px solid #ddd; padding-right: 10px;">
+                            <div style="font-size: 12px; font-weight: bold; color: #667eea; text-align: center; margin-bottom: 8px;">Player 1</div>
+                            <div id="historyPlayer1" style="display: flex; flex-direction: column; gap: 5px;"></div>
+                        </div>
+                        <div style="padding-left: 10px;">
+                            <div style="font-size: 12px; font-weight: bold; color: #764ba2; text-align: center; margin-bottom: 8px;">Player 2</div>
+                            <div id="historyPlayer2" style="display: flex; flex-direction: column; gap: 5px;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="players-section">
@@ -423,7 +541,7 @@
                         <button class="choice-btn trust-btn" id="p1TrustBtn" onclick="makeChoice(1, 'trust')">Tin Tưởng</button>
                         <button class="choice-btn betray-btn" id="p1BetrayBtn" onclick="makeChoice(1, 'betray')">Phản Bội</button>
                     </div>
-                    <div class="choice-status waiting" id="choice1Status">⏳ Chờ lựa chọn...</div>
+                    <div class="choice-status waiting" id="choice1Status" style="display:none;">⏳ Chờ lựa chọn...</div>
                 </div>
 
                 <!-- Player 2 -->
@@ -434,13 +552,40 @@
                         <button class="choice-btn trust-btn" id="p2TrustBtn" onclick="makeChoice(2, 'trust')" disabled>Tin Tưởng</button>
                         <button class="choice-btn betray-btn" id="p2BetrayBtn" onclick="makeChoice(2, 'betray')" disabled>Phản Bội</button>
                     </div>
-                    <div class="choice-status opponent-waiting" id="choice2Status">⏳ Chờ người kia chọn...</div>
+                    <div class="choice-status opponent-waiting" id="choice2Status" style="display:none;">⏳ Chờ người kia chọn...</div>
                 </div>
             </div>
 
             <div class="result-section" id="resultSection">
+                <div style="position: absolute; top: 20px; right: 20px; background: #667eea; color: white; padding: 10px 20px; border-radius: 10px; font-size: 18px; font-weight: bold; min-width: 60px; text-align: center;">
+                    <div id="resultCountdown" style="font-size: 24px;">15</div>
+                </div>
                 <div class="result-title" id="resultTitle"></div>
                 <div class="result-details" id="resultDetails"></div>
+                <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                    <h3 style="margin: 0 0 15px 0; color: #333;">📊 Bảng Điểm</h3>
+                    <div style="display: flex; justify-content: space-around; gap: 20px;">
+                        <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 8px;">Người Chơi 1</div>
+                            <div style="font-size: 32px; font-weight: bold; color: #667eea;" id="resultScore1">0</div>
+                        </div>
+                        <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; border: 2px solid #764ba2;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 8px;">Người Chơi 2</div>
+                            <div style="font-size: 32px; font-weight: bold; color: #764ba2;" id="resultScore2">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="spectatorControl" style="margin-top: 20px; display: none;">
+                    <button class="btn-submit" onclick="proceedToNextRound()" style="background: #ff6b6b;">
+                        ➡️ Chuyển Sang Vòng Tiếp Theo
+                    </button>
+                </div>
+            </div>
+
+            <div class="break-section" id="breakSection" style="display: none; text-align: center; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: fixed; top: 0; left: 0; width: 100%; height: 100vh; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+                <h2 style="color: white; font-size: 36px; margin-bottom: 30px;">⏸️ Giải Lao</h2>
+                <div id="breakCountdown" style="font-size: 72px; font-weight: bold; color: white; margin: 30px 0; font-family: 'Arial', monospace;">5</div>
+                <p style="color: white; font-size: 18px;">Chuẩn bị cho vòng tiếp theo...</p>
             </div>
 
             <div class="game-ended" id="gameEnded">
@@ -450,7 +595,7 @@
             </div>
 
             <div class="controls">
-                <button class="btn-submit" id="submitBtn" onclick="submitRound()" disabled>
+                <button class="btn-submit" id="submitBtn" onclick="submitRound()" style="display: none;">
                     ✓ Ghi Nhận Lựa Chọn
                 </button>
                 <button class="btn-reset" onclick="resetGame()">🔄 Chơi Lại</button>
@@ -459,19 +604,45 @@
     </div>
 
     <script>
-        // Firebase Configuration - Dùng public config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAKn7h7v-D7H5_5J5K5J5K5J5K5J5K5J5K",
-            authDomain: "prisoners-game.firebaseapp.com",
-            projectId: "prisoners-game-a1b2c",
-            storageBucket: "prisoners-game-a1b2c.appspot.com",
-            messagingSenderId: "123456789",
-            databaseURL: "https://prisoners-game-a1b2c-default-rtdb.firebaseio.com"
-        };
+        // Lưu trữ game data (localStorage để chơi được ngay không cần Firebase)
+        const STORAGE_KEY = 'prisoner_game_';
+        
+        // Wrapper cho database để hỗ trợ localStorage
+        class GameStorage {
+            constructor() {
+                this.useLocalStorage = true;
+            }
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(app);
+            async write(path, data) {
+                localStorage.setItem(STORAGE_KEY + path, JSON.stringify(data));
+                return Promise.resolve();
+            }
+
+            async read(path) {
+                const data = localStorage.getItem(STORAGE_KEY + path);
+                return data ? JSON.parse(data) : null;
+            }
+
+            async update(path, updates) {
+                const current = await this.read(path);
+                const updated = { ...current, ...updates };
+                await this.write(path, updated);
+                return Promise.resolve();
+            }
+
+            watch(path, callback) {
+                // Kiểm tra thay đổi mỗi 500ms
+                const interval = setInterval(() => {
+                    const data = localStorage.getItem(STORAGE_KEY + path);
+                    if (data) {
+                        callback(JSON.parse(data));
+                    }
+                }, 500);
+                return () => clearInterval(interval);
+            }
+        }
+
+        const storage = new GameStorage();
 
         let gameState = {
             gameId: null,
@@ -481,14 +652,32 @@
             scores: { 1: 0, 2: 0 },
             currentRound: 0,
             maxRounds: 0,
-            gameEnded: false
+            gameEnded: false,
+            history: []
         };
 
         let listeners = [];
+        let autoProceedTimer = null;
 
         // Chọn vai trò
         function selectRole(role) {
             gameState.role = role;
+            
+            // Remove selected class from all role buttons
+            document.getElementById('rolePlayer1').classList.remove('selected');
+            document.getElementById('rolePlayer2').classList.remove('selected');
+            document.getElementById('roleSpectator').classList.remove('selected');
+            
+            // Map role to button ID and add selected class
+            const roleMap = {
+                'player1': 'rolePlayer1',
+                'player2': 'rolePlayer2',
+                'spectator': 'roleSpectator'
+            };
+            
+            if (roleMap[role]) {
+                document.getElementById(roleMap[role]).classList.add('selected');
+            }
             
             if (role === 'player1') {
                 gameState.playerNumber = 1;
@@ -499,9 +688,20 @@
             } else if (role === 'spectator') {
                 gameState.playerNumber = null;
             }
+        }
+
+        // Bắt đầu game
+        function startGame() {
+            console.log('startGame called, gameState.role:', gameState.role);
+            
+            if (gameState.role === null || gameState.role === undefined) {
+                alert('Vui lòng chọn vai trò trước!');
+                return;
+            }
             
             document.getElementById('roleSection').style.display = 'none';
             document.getElementById('loadingSection').style.display = 'block';
+            console.log('Initializing game with role:', gameState.role);
             initGame();
         }
 
@@ -522,32 +722,49 @@
             gameState.gameId = getOrCreateGameId();
             
             try {
-                const gameRef = db.ref('games/' + gameState.gameId);
-                const snapshot = await gameRef.once('value');
+                console.log('Connecting with gameId:', gameState.gameId);
+                console.log('Current role:', gameState.role, 'playerNumber:', gameState.playerNumber);
+                const data = await storage.read('games/' + gameState.gameId);
                 
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    console.log('Game exists, joining as player 2');
-                    gameState.playerNumber = 2;
+                if (data) {
+                    console.log('Game exists, joining with role:', gameState.role);
+                    // Nếu là Người Chơi 2 hoặc Người Xem, giữ nguyên vai trò
+                    if (gameState.role !== 'player1') {
+                        console.log('Keeping player role as:', gameState.playerNumber);
+                    } else {
+                        gameState.playerNumber = 1;
+                    }
+                    
                     gameState.maxRounds = data.maxRounds;
                     gameState.currentRound = data.currentRound;
                     gameState.scores = data.scores;
-                    document.getElementById('youLabel').textContent = '';
+                    gameState.history = data.history || [];
                     
                     // Update UI
                     updateScores();
                     updateRoundDisplay();
+                    updateChoiceHistory();
                     
                     // Listen for changes
                     setupListeners();
                 } else {
+                    // Chỉ cho phép tạo game mới nếu là Người Chơi 1
+                    if (gameState.role !== 'player1') {
+                        alert('❌ Phòng không tồn tại! Vui lòng yêu cầu Người Chơi 1 bắt đầu game trước.');
+                        document.getElementById('loadingSection').style.display = 'none';
+                        document.getElementById('roleSection').style.display = 'block';
+                        gameState.role = null;
+                        gameState.playerNumber = null;
+                        return;
+                    }
+                    
                     console.log('Creating new game as player 1');
                     gameState.playerNumber = 1;
                     gameState.maxRounds = Math.floor(Math.random() * 6) + 5;
                     gameState.currentRound = 0;
                     
                     // Create new game
-                    await gameRef.set({
+                    await storage.write('games/' + gameState.gameId, {
                         maxRounds: gameState.maxRounds,
                         currentRound: 0,
                         scores: { 1: 0, 2: 0 },
@@ -564,26 +781,32 @@
                 
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('gameSection').style.display = 'block';
+                
+                // Update history và scores
+                updateChoiceHistory();
+                updateScores();
+                
+                console.log('Game loaded successfully, playerNumber:', gameState.playerNumber);
             } catch (error) {
                 console.error('Error initializing game:', error);
-                alert('Lỗi kết nối! Vui lòng F5 để tải lại.');
+                document.getElementById('loadingSection').style.display = 'none';
+                alert('❌ Lỗi: ' + error.message);
             }
         }
 
         function setupListeners() {
-            const gameRef = db.ref('games/' + gameState.gameId);
-            
             // Listen cho thay đổi
-            const listener = gameRef.on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
+            const unwatch = storage.watch('games/' + gameState.gameId, (data) => {
+                if (data) {
                     gameState.scores = data.scores;
                     gameState.currentRound = data.currentRound;
                     gameState.choices = data.choices;
+                    gameState.history = data.history || [];
                     
                     updateScores();
                     updateRoundDisplay();
                     updateChoiceStatus();
+                    updateChoiceHistory();
                     
                     // Nếu cả 2 đã chọn xong
                     if (data.choices[1] && data.choices[2] && !data.resultShown) {
@@ -592,8 +815,10 @@
                 }
             });
             
-            listeners.push(() => gameRef.off('value', listener));
+            listeners.push(unwatch);
         }
+
+
 
         function makeChoice(player, choice) {
             if (player !== gameState.playerNumber) return;
@@ -602,8 +827,10 @@
             
             gameState.choices[gameState.playerNumber] = choice;
             
-            // Cập nhật lên Firebase
-            db.ref('games/' + gameState.gameId + '/choices/' + gameState.playerNumber).set(choice);
+            // Cập nhật lên storage
+            storage.update('games/' + gameState.gameId, {
+                choices: gameState.choices
+            });
             
             updateChoiceStatus();
         }
@@ -628,6 +855,26 @@
                 status2.className = 'choice-status opponent-waiting';
             }
             
+            // Disable buttons for player who already chose
+            if (gameState.choices[1]) {
+                document.getElementById('p1TrustBtn').disabled = true;
+                document.getElementById('p1BetrayBtn').disabled = true;
+            }
+            
+            if (gameState.choices[2]) {
+                document.getElementById('p2TrustBtn').disabled = true;
+                document.getElementById('p2BetrayBtn').disabled = true;
+            }
+            
+            // Enable buttons for current player (nếu chưa chọn)
+            if (gameState.playerNumber === 1 && !gameState.choices[1]) {
+                document.getElementById('p1TrustBtn').disabled = false;
+                document.getElementById('p1BetrayBtn').disabled = false;
+            } else if (gameState.playerNumber === 2 && !gameState.choices[2]) {
+                document.getElementById('p2TrustBtn').disabled = false;
+                document.getElementById('p2BetrayBtn').disabled = false;
+            }
+            
             // Enable submit nếu đó là player mình
             if (gameState.playerNumber && gameState.choices[gameState.playerNumber]) {
                 document.getElementById('submitBtn').disabled = false;
@@ -638,44 +885,159 @@
             // Lựa chọn đã được gửi trong makeChoice
         }
 
+        function startBreakCountdown() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('breakSection').style.display = 'flex';
+            
+            let countdown = 5;
+            const breakCountdownDiv = document.getElementById('breakCountdown');
+            breakCountdownDiv.textContent = countdown;
+            
+            const breakInterval = setInterval(() => {
+                countdown--;
+                breakCountdownDiv.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(breakInterval);
+                    document.getElementById('breakSection').style.display = 'none';
+                    
+                    // Tiếp tục vòng tiếp theo
+                    if (gameState.currentRound >= gameState.maxRounds) {
+                        gameState.gameEnded = true;
+                        endGame(gameState.scores);
+                    } else {
+                        proceedToNextRound();
+                    }
+                }
+            }, 1000);
+        }
+
         function showResult(data) {
             const p1Choice = data.choices[1];
             const p2Choice = data.choices[2];
             let resultText = '';
             let resultDetails = '';
+            let p1Points = 0;
+            let p2Points = 0;
 
             if (p1Choice === 'trust' && p2Choice === 'trust') {
+                p1Points = 3;
+                p2Points = 3;
                 resultText = '✅ Cả 2 đều Tin Tưởng - Hợp Tác Thành Công!';
-                resultDetails = `Người Chơi 1: +3 🎯 | Người Chơi 2: +3 🎯`;
+                resultDetails = `Người Chơi 1: +${p1Points} 🎯 | Người Chơi 2: +${p2Points} 🎯`;
             } else if (p1Choice === 'betray' && p2Choice === 'trust') {
+                p1Points = 6;
+                p2Points = 0;
                 resultText = '⚠️ Người Chơi 1 Phản Bội - Người Chơi 1 Thắng!';
-                resultDetails = `Người Chơi 1: +6 🎯 | Người Chơi 2: +0 😞`;
+                resultDetails = `Người Chơi 1: +${p1Points} 🎯 | Người Chơi 2: +${p2Points} 😞`;
             } else if (p1Choice === 'trust' && p2Choice === 'betray') {
+                p1Points = 0;
+                p2Points = 6;
                 resultText = '⚠️ Người Chơi 2 Phản Bội - Người Chơi 2 Thắng!';
-                resultDetails = `Người Chơi 1: +0 😞 | Người Chơi 2: +6 🎯`;
+                resultDetails = `Người Chơi 1: +${p1Points} 😞 | Người Chơi 2: +${p2Points} 🎯`;
             } else if (p1Choice === 'betray' && p2Choice === 'betray') {
+                p1Points = 1;
+                p2Points = 1;
                 resultText = '❌ Cả 2 đều Phản Bội - Cả 2 Thua Lớn!';
-                resultDetails = `Người Chơi 1: +1 😐 | Người Chơi 2: +1 😐`;
+                resultDetails = `Người Chơi 1: +${p1Points} 😐 | Người Chơi 2: +${p2Points} 😐`;
             }
 
             document.getElementById('resultTitle').textContent = resultText;
             document.getElementById('resultDetails').textContent = resultDetails;
             document.getElementById('resultSection').classList.add('show');
+            document.getElementById('resultSection').style.display = 'block';
 
-            // Check if game ended
-            if (data.currentRound >= data.maxRounds) {
-                gameState.gameEnded = true;
-                setTimeout(() => {
-                    endGame(data.scores);
-                }, 2000);
-            } else {
-                setTimeout(() => {
-                    resetForNextRound();
-                }, 2000);
+            // Cập nhật điểm
+            gameState.scores[1] += p1Points;
+            gameState.scores[2] += p2Points;
+            
+            // Cập nhật lịch sử ngay lập tức vào gameState
+            gameState.history.push({
+                round: gameState.currentRound,
+                choices: gameState.choices
+            });
+            
+            // Lưu điểm và lịch sử vào storage
+            storage.update('games/' + gameState.gameId, {
+                scores: gameState.scores,
+                history: gameState.history
+            });
+            
+            // Cập nhật UI ngay lập tức (không cần chờ)
+            updateScores();
+            updateChoiceHistory();
+            
+            // Update bảng điểm trong result
+            document.getElementById('resultScore1').textContent = gameState.scores[1];
+            document.getElementById('resultScore2').textContent = gameState.scores[2];
+
+            // Tự động tiếp tục sau 15 giây cho tất cả
+            if (autoProceedTimer) {
+                clearTimeout(autoProceedTimer);
             }
+            
+            // Countdown trên resultSection
+            let countdownResult = 15;
+            const resultCountdownDiv = document.getElementById('resultCountdown');
+            resultCountdownDiv.textContent = countdownResult;
+            
+            const resultCountdownInterval = setInterval(() => {
+                countdownResult--;
+                resultCountdownDiv.textContent = countdownResult;
+                if (countdownResult <= 0) {
+                    clearInterval(resultCountdownInterval);
+                }
+            }, 1000);
+            
+            // Hiển thị countdown cho người xem
+            if (gameState.role === 'spectator') {
+                let countdown = 15;
+                document.getElementById('spectatorControl').innerHTML = '<p style="font-size: 18px; color: #666;">⏳ Vòng tiếp theo trong <strong>' + countdown + '</strong>s</p>';
+                document.getElementById('spectatorControl').style.display = 'block';
+                
+                // Update countdown
+                const countdownInterval = setInterval(() => {
+                    countdown--;
+                    if (countdown > 0) {
+                        document.getElementById('spectatorControl').innerHTML = '<p style="font-size: 18px; color: #666;">⏳ Vòng tiếp theo trong <strong>' + countdown + '</strong>s</p>';
+                    }
+                }, 1000);
+            }
+            
+            autoProceedTimer = setTimeout(() => {
+                startBreakCountdown();
+            }, 15000);
 
-            // Mark result as shown
-            db.ref('games/' + gameState.gameId + '/resultShown').set(true);
+            // Lưu lịch sử lựa chọn
+            gameState.history.push({
+                round: gameState.currentRound,
+                choices: gameState.choices
+            });
+            
+            // Mark result as shown và cập nhật history
+            storage.update('games/' + gameState.gameId, {
+                resultShown: true,
+                history: gameState.history
+            });
+            
+            // Update UI history
+            updateChoiceHistory();
+        }
+
+        function proceedToNextRound() {
+            // Clear timer nếu còn
+            if (autoProceedTimer) {
+                clearTimeout(autoProceedTimer);
+            }
+            
+            // Check if game ended
+            if (gameState.currentRound >= gameState.maxRounds) {
+                gameState.gameEnded = true;
+                endGame(gameState.scores);
+            } else {
+                resetForNextRound();
+            }
+            document.getElementById('spectatorControl').style.display = 'none';
         }
 
         function endGame(scores) {
@@ -700,9 +1062,11 @@
             gameState.choices = { 1: null, 2: null };
             document.getElementById('resultSection').classList.remove('show');
             
-            db.ref('games/' + gameState.gameId + '/choices').set({ 1: null, 2: null });
-            db.ref('games/' + gameState.gameId + '/resultShown').set(false);
-            db.ref('games/' + gameState.gameId + '/currentRound').set(gameState.currentRound + 1);
+            storage.update('games/' + gameState.gameId, {
+                choices: { 1: null, 2: null },
+                resultShown: false,
+                currentRound: gameState.currentRound + 1
+            });
             
             updateChoiceStatus();
         }
@@ -715,6 +1079,47 @@
         function updateScores() {
             document.getElementById('score1').textContent = gameState.scores[1] || 0;
             document.getElementById('score2').textContent = gameState.scores[2] || 0;
+            // Cập nhật bảng điểm trên game section
+            document.getElementById('gameScore1').textContent = gameState.scores[1] || 0;
+            document.getElementById('gameScore2').textContent = gameState.scores[2] || 0;
+        }
+
+        function updateChoiceHistory() {
+            // Sử dụng gameState.history thay vì đọc từ storage
+            if (!gameState.history || gameState.history.length === 0) return;
+            
+            const history1 = document.getElementById('historyPlayer1');
+            const history2 = document.getElementById('historyPlayer2');
+            history1.innerHTML = '';
+            history2.innerHTML = '';
+            
+            // Tạo row container cho circles
+            const row1 = document.createElement('div');
+            row1.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap; align-items: center;';
+            
+            const row2 = document.createElement('div');
+            row2.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap; align-items: center;';
+            
+            gameState.history.forEach((round, index) => {
+                // Circle cho Player 1
+                const circle1 = document.createElement('div');
+                const color1 = round.choices[1] === 'trust' ? '#4CAF50' : (round.choices[1] === 'betray' ? '#f44336' : '#ffeb3b');
+                circle1.style.cssText = `width: 30px; height: 30px; border-radius: 50%; background: ${color1}; border: 3px solid #FFD700; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: help;`;
+                circle1.title = `V${index + 1}: ${round.choices[1] === 'trust' ? 'Tin Tưởng' : 'Phản Bội'}`;
+                circle1.textContent = '●';
+                row1.appendChild(circle1);
+                
+                // Circle cho Player 2
+                const circle2 = document.createElement('div');
+                const color2 = round.choices[2] === 'trust' ? '#4CAF50' : (round.choices[2] === 'betray' ? '#f44336' : '#ffeb3b');
+                circle2.style.cssText = `width: 30px; height: 30px; border-radius: 50%; background: ${color2}; border: 3px solid #FFD700; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: help;`;
+                circle2.title = `V${index + 1}: ${round.choices[2] === 'trust' ? 'Tin Tưởng' : 'Phản Bội'}`;
+                circle2.textContent = '●';
+                row2.appendChild(circle2);
+            });
+            
+            history1.appendChild(row1);
+            history2.appendChild(row2);
         }
 
         function updateRoundDisplay() {
@@ -742,6 +1147,17 @@
         // Cleanup khi đóng
         window.addEventListener('beforeunload', () => {
             listeners.forEach(l => l());
+            if (autoProceedTimer) {
+                clearTimeout(autoProceedTimer);
+            }
+        });
+
+        // Thêm event listener cho nút Bắt Đầu
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) {
+                startBtn.addEventListener('click', startGame);
+            }
         });
     </script>
 </body>
