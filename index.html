@@ -13,12 +13,14 @@
 
         try {
             const firebaseConfig = {
-                apiKey: "AIzaSyAKn7h7v-D7H5_5J5K5J5K5J5K5J5K5J5K",
-                authDomain: "prisoners-game.firebaseapp.com",
-                projectId: "prisoners-game-a1b2c",
-                storageBucket: "prisoners-game-a1b2c.appspot.com",
-                messagingSenderId: "123456789",
-                databaseURL: "https://prisoners-game-a1b2c-default-rtdb.firebaseio.com"
+                apiKey: "AIzaSyAIRvunBgcX43pSwG9zok71qqjocaMoeKU",
+                authDomain: "game-8c5f2.firebaseapp.com",
+                databaseURL: "https://game-8c5f2-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "game-8c5f2",
+                storageBucket: "game-8c5f2.firebasestorage.app",
+                messagingSenderId: "765678876418",
+                appId: "1:765678876418:web:4b1925c2a159b56676341b",
+                measurementId: "G-HX4WJ8LHHQ"
             };
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
@@ -708,10 +710,13 @@
         // Lấy hoặc tạo game ID từ URL
         function getOrCreateGameId() {
             const hash = window.location.hash.substring(1);
-            if (hash && hash.length > 0) {
+            console.log('Hash từ URL:', hash);
+            if (hash && hash.length > 0 && hash !== '0') {
+                console.log('Sử dụng game ID từ URL:', hash);
                 return hash;
             } else {
                 const newId = Math.random().toString(36).substring(2, 11);
+                console.log('Tạo game ID mới:', newId);
                 window.location.hash = newId;
                 return newId;
             }
@@ -750,7 +755,7 @@
                 } else {
                     // Chỉ cho phép tạo game mới nếu là Người Chơi 1
                     if (gameState.role !== 'player1') {
-                        alert('❌ Phòng không tồn tại! Vui lòng yêu cầu Người Chơi 1 bắt đầu game trước.');
+                        alert('❌ Phòng không tồn tại! Vui lòng yêu cầu Người Chơi 1 bắt đầu game trước hoặc kiểm tra link.\n\nGame ID: ' + gameState.gameId);
                         document.getElementById('loadingSection').style.display = 'none';
                         document.getElementById('roleSection').style.display = 'block';
                         gameState.role = null;
