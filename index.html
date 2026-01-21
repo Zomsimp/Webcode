@@ -606,41 +606,60 @@
     </div>
 
     <script>
-        // Lưu trữ game data (localStorage để chơi được ngay không cần Firebase)
-        const STORAGE_KEY = 'prisoner_game_';
+        // Lưu trữ game data - Sử dụng Firebase Realtime Database
         
-        // Wrapper cho database để hỗ trợ localStorage
+        // Wrapper cho database để hỗ trợ Firebase hoặc localStorage fallback
         class GameStorage {
             constructor() {
-                this.useLocalStorage = true;
+                this.useFirebase = window.db !== null && window.db !== undefined;
+                console.log('GameStorage initialized, useFirebase:', this.useFirebase);
             }
 
             async write(path, data) {
-                localStorage.setItem(STORAGE_KEY + path, JSON.stringify(data));
-                return Promise.resolve();
+                if (this.useFirebase) {
+                    return window.db.ref(path).set(data);
+                } else {
+                    localStorage.setItem('prisoner_game_' + path, JSON.stringify(data));
+                    return Promise.resolve();
+                }
             }
 
             async read(path) {
-                const data = localStorage.getItem(STORAGE_KEY + path);
-                return data ? JSON.parse(data) : null;
+                if (this.useFirebase) {
+                    const snapshot = await window.db.ref(path).once('value');
+                    return snapshot.val();
+                } else {
+                    const data = localStorage.getItem('prisoner_game_' + path);
+                    return data ? JSON.parse(data) : null;
+                }
             }
 
             async update(path, updates) {
-                const current = await this.read(path);
-                const updated = { ...current, ...updates };
-                await this.write(path, updated);
-                return Promise.resolve();
+                if (this.useFirebase) {
+                    return window.db.ref(path).update(updates);
+                } else {
+                    const current = await this.read(path);
+                    const updated = { ...current, ...updates };
+                    await this.write(path, updated);
+                    return Promise.resolve();
+                }
             }
 
             watch(path, callback) {
-                // Kiểm tra thay đổi mỗi 500ms
-                const interval = setInterval(() => {
-                    const data = localStorage.getItem(STORAGE_KEY + path);
-                    if (data) {
-                        callback(JSON.parse(data));
-                    }
-                }, 500);
-                return () => clearInterval(interval);
+                if (this.useFirebase) {
+                    window.db.ref(path).on('value', (snapshot) => {
+                        callback(snapshot.val());
+                    });
+                    return () => window.db.ref(path).off('value');
+                } else {
+                    const interval = setInterval(() => {
+                        const data = localStorage.getItem('prisoner_game_' + path);
+                        if (data) {
+                            callback(JSON.parse(data));
+                        }
+                    }, 500);
+                    return () => clearInterval(interval);
+                }
             }
         }
 
