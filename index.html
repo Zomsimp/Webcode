@@ -1,201 +1,302 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đào Quang Lâm - Bio Link</title>
-    <!-- Sử dụng Tailwind CSS qua CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome để hiển thị icon Facebook -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* 1. Nền tối có chiều sâu */
-        body {
-            background: linear-gradient(135deg, #090d16 0%, #110e2e 50%, #090714 100%);
-            overflow: hidden; /* Giữ các hạt không bị tràn màn hình gây ra thanh cuộn */
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f3ff">
+  <meta name="description" content="Kết nối với mình trên TikTok, Instagram, Facebook và Zalo.">
+  <title>BIO | Kết nối với mình</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-        /* 2. Hiệu ứng quét sáng (Shine) trên các nút bấm */
-        .btn-shine {
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-shine::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -60%;
-            width: 30%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.13);
-            transform: rotate(30deg);
-            animation: shine 4s ease-in-out infinite;
-        }
-        @keyframes shine {
-            0% { left: -60%; }
-            15% { left: 140%; }
-            100% { left: 140%; }
-        }
+    * {
+      box-sizing: border-box;
+    }
 
-        /* 3. Hiệu ứng xoay nhẹ viền Avatar */
-        @keyframes spin-slow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-            animation: spin-slow 8s linear infinite;
-        }
+    body {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+      color: #28243a;
+      background: #f7f3ff;
+    }
 
-        /* 4. CSS cho các hạt bay phía sau */
-        .particle {
-            position: absolute;
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
-            pointer-events: none; /* Không cản trở việc bấm nút */
-            animation: floatUp linear infinite;
-        }
-        @keyframes floatUp {
-            0% {
-                transform: translateY(105vh) scale(0.5);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.8;
-            }
-            90% {
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(-5vh) scale(1.2);
-                opacity: 0;
-            }
-        }
-    </style>
+    body::before {
+      position: fixed;
+      z-index: -1;
+      inset: -20%;
+      content: "";
+      background:
+        radial-gradient(ellipse at 20% 25%, #ffe2e9 0, transparent 34%),
+        radial-gradient(ellipse at 78% 72%, #dcd8ff 0, transparent 38%),
+        radial-gradient(ellipse at 78% 18%, #f4dcff 0, transparent 30%);
+      animation: background-drift 18s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+
+    body::after {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      opacity: 0.28;
+      background-image: radial-gradient(#8f7bb8 0.7px, transparent 0.7px);
+      background-size: 24px 24px;
+      mask-image: linear-gradient(135deg, black, transparent 72%);
+    }
+
+    @keyframes background-drift {
+      from {
+        transform: translate3d(-2%, -1%, 0) scale(1);
+      }
+      to {
+        transform: translate3d(2%, 1%, 0) scale(1.08);
+      }
+    }
+
+    .bio-card {
+      position: relative;
+      overflow: hidden;
+      width: min(100%, 480px);
+      padding: 48px 36px 32px;
+      text-align: center;
+      background: rgb(255 255 255 / 76%);
+      border: 1px solid rgb(255 255 255 / 92%);
+      border-radius: 32px;
+      box-shadow:
+        0 32px 80px rgb(67 47 108 / 15%),
+        0 4px 14px rgb(67 47 108 / 5%),
+        inset 0 1px 0 rgb(255 255 255 / 95%);
+      backdrop-filter: blur(20px);
+    }
+
+    .bio-card::before {
+      position: absolute;
+      top: 0;
+      left: 14%;
+      width: 72%;
+      height: 3px;
+      content: "";
+      background: linear-gradient(90deg, transparent, #ff91ad, #947bff, transparent);
+      border-radius: 0 0 4px 4px;
+    }
+
+    .avatar {
+      position: relative;
+      width: 112px;
+      height: 112px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 23px;
+      color: white;
+      font-size: 42px;
+      font-weight: 800;
+      object-fit: cover;
+      background: linear-gradient(145deg, #ff829d 8%, #bc78e8 55%, #7f7aff);
+      border: 5px solid rgb(255 255 255 / 94%);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 5px rgb(151 121 231 / 12%),
+        0 12px 28px rgb(137 105 221 / 28%);
+    }
+
+    h1 {
+      margin: 0;
+      color: #29243b;
+      font-size: clamp(28px, 7vw, 34px);
+      font-weight: 760;
+      letter-spacing: -0.9px;
+    }
+
+    .bio {
+      margin: 12px 0 32px;
+      color: #777287;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .links {
+      display: grid;
+      gap: 15px;
+    }
+
+    .social-link {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 13px 19px;
+      color: #302d3d;
+      font-size: 17px;
+      font-weight: 680;
+      text-align: left;
+      text-decoration: none;
+      background: rgb(255 255 255 / 88%);
+      border: 1px solid rgb(231 227 240 / 90%);
+      border-radius: 18px;
+      box-shadow: 0 3px 8px rgb(49 38 82 / 3%);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .social-link:hover {
+      transform: translateY(-3px);
+      border-color: #d7cafa;
+      background: white;
+      box-shadow: 0 12px 24px rgb(68 52 111 / 10%);
+    }
+
+    .social-link:active {
+      transform: translateY(-1px) scale(0.99);
+    }
+
+    .social-link:nth-child(1):hover { border-color: #bcb7c8; }
+    .social-link:nth-child(2):hover { border-color: #f1b7d4; }
+    .social-link:nth-child(3):hover { border-color: #a9ccff; }
+    .social-link:nth-child(4):hover { border-color: #a9d4ff; }
+
+    .social-link > span:nth-child(2) {
+      letter-spacing: 0.1px;
+    }
+
+    .social-link:focus-visible {
+      outline: 3px solid #8b72e8;
+      outline-offset: 3px;
+    }
+
+    .icon {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 750;
+      border-radius: 12px;
+      box-shadow: inset 0 1px 1px rgb(255 255 255 / 24%);
+    }
+
+    .tiktok { background: #171717; }
+    .instagram { background: linear-gradient(140deg, #ffd776, #ff665f 48%, #bd48b8 78%, #6558d9); }
+    .facebook { background: #1877f2; font-family: Arial, sans-serif; font-size: 26px; }
+    .zalo { background: #087ff5; font-size: 12px; letter-spacing: -0.6px; }
+
+    .arrow {
+      margin-left: auto;
+      color: #aaa5b7;
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .payment {
+      margin-top: 28px;
+      padding: 22px 18px 20px;
+      background: rgb(255 255 255 / 58%);
+      border: 1px solid rgb(231 227 240 / 90%);
+      border-radius: 22px;
+    }
+
+    .payment h2 {
+      margin: 0;
+      color: #302b42;
+      font-size: 19px;
+      font-weight: 730;
+      letter-spacing: -0.3px;
+    }
+
+    .payment-note {
+      margin: 6px 0 16px;
+      color: #777287;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .qr-image {
+      display: block;
+      width: min(100%, 250px);
+      height: auto;
+      margin: 0 auto;
+      padding: 10px;
+      background: white;
+      border: 1px solid #efedf4;
+      border-radius: 18px;
+      box-shadow: 0 8px 22px rgb(49 38 82 / 8%);
+    }
+
+    footer {
+      margin-top: 30px;
+      color: #a19caf;
+      font-size: 13px;
+      letter-spacing: 0.15px;
+    }
+
+    @media (max-width: 360px) {
+      .bio-card {
+        padding: 38px 20px 25px;
+        border-radius: 26px;
+      }
+
+      .social-link {
+        min-height: 62px;
+      }
+
+      .avatar {
+        width: 100px;
+        height: 100px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before {
+        animation: none;
+      }
+
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
-<body class="text-gray-200 min-h-screen flex flex-col items-center justify-center p-5 select-none relative">
+<body>
+  <main class="bio-card">
+    <img class="avatar" src="avatar.jpg" alt="Ảnh đại diện của bạn">
+    <h1>Đào Quang Lâm</h1>
+    <p class="bio">Xin chào! Đây là nơi kết nối với mình ✨</p>
 
-    <!-- Lớp chứa các hạt chuyển động (nằm dưới khung Bio) -->
-    <div id="particle-container" class="absolute inset-0 pointer-events-none z-0"></div>
+    <nav class="links" aria-label="Các trang mạng xã hội">
+      <a class="social-link" href="https://www.facebook.com/aoquanglam.593714?rdid=fqmXAGdj7PPuiImQ&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1PyVKytfM4%2F#" target="_blank" rel="noopener noreferrer">
+        <span class="icon facebook" aria-hidden="true">f</span>
+        <span>Facebook</span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="social-link" href="https://zalo.me/0879105860" target="_blank" rel="noopener noreferrer">
+        <span class="icon zalo" aria-hidden="true">Zalo</span>
+        <span>Zalo</span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+    </nav>
 
-    <!-- Khung Bio chính -->
-    <div class="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl text-center relative z-10 transform transition-all duration-500 hover:scale-[1.01]">
-        
-        <!-- Ảnh đại diện (Avatar) với viền động -->
-        <div class="relative w-24 h-24 mx-auto mb-4 group">
-            <div class="absolute inset-0 bg-gradient-to-tr from-blue-500 via-teal-400 to-purple-500 rounded-full animate-spin-slow blur-[2px]"></div>
-            <div class="absolute inset-[3px] bg-slate-900 rounded-full"></div>
-            <img src="avatar.jpg" alt="Avatar" class="absolute inset-[4px] w-[calc(100%-8px)] h-[calc(100%-8px)] object-cover rounded-full transition-transform duration-500 group-hover:scale-105">
-        </div>
+    <section class="payment" aria-labelledby="payment-title">
+      <h2 id="payment-title">QR ngân hàng</h2>
+      <p class="payment-note">Quét mã để chuyển khoản cho mình 💜</p>
+      <img class="qr-image" src="QR.jpg" alt="Mã QR ngân hàng để chuyển khoản">
+    </section>
 
-        <!-- Tên và Mô tả ngắn -->
-        <h1 class="text-2xl font-extrabold tracking-wide text-white mb-1.5 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
-            Đào Quang Lâm
-        </h1>
-        <p class="text-xs text-gray-400 font-medium tracking-wider uppercase mb-6 flex items-center justify-center gap-1.5">
-            <span>Thông tin liên kết</span> 
-            <span class="inline-block animate-pulse text-teal-400">✨</span>
-        </p>
-
-        <!-- Danh sách các nút liên kết -->
-        <div class="space-y-4">
-            
-            <!-- Nút Facebook -->
-            <a href="https://www.facebook.com/share/1PyVKytfM4/" target="_blank" 
-               class="btn-shine flex items-center justify-between w-full px-5 py-4 bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/20 hover:border-[#1877F2]/80 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-9 h-9 flex items-center justify-center bg-[#1877F2]/20 rounded-xl group-hover:scale-110 transition-transform">
-                        <i class="fab fa-facebook text-[#1877F2] text-xl"></i>
-                    </div>
-                    <span class="font-semibold text-sm tracking-wide text-gray-300 group-hover:text-white transition-colors">Facebook</span>
-                </div>
-                <i class="fas fa-chevron-right text-gray-600 text-xs group-hover:translate-x-1 group-hover:text-white transition-all"></i>
-            </a>
-
-            <!-- Nút Zalo -->
-            <a href="https://zalo.me/0879105860" target="_blank" 
-               class="btn-shine flex items-center justify-between w-full px-5 py-4 bg-[#0068FF]/10 hover:bg-[#0068FF]/20 border border-[#0068FF]/20 hover:border-[#0068FF]/80 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-9 h-9 flex items-center justify-center bg-[#0068FF]/20 rounded-xl group-hover:scale-110 transition-transform p-1.5">
-                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-                            <path d="M24 4C12.95 4 4 11.83 4 21.5C4 26.63 6.47 31.25 10.42 34.41C9.64 37.77 8.12 41.25 8.04 41.43C7.94 41.67 8.01 41.93 8.21 42.08C8.34 42.18 8.5 42.22 8.65 42.22C8.75 42.22 8.86 42.19 8.96 42.14C9.13 42.06 14.73 39.11 18.73 36.88C20.42 37.47 22.18 37.79 24 37.79C35.05 37.79 44 29.96 44 20.29C44 11.3 35.05 4 24 4ZM34.56 26.59C34.25 27.23 33.15 27.75 31.96 27.75C31.51 27.75 30.07 27.56 27.39 26.12C23.77 24.17 21.43 21.05 20.08 19.14C19.78 18.72 17.51 15.48 17.51 12.87C17.51 10.57 18.78 9.43 19.46 8.89C19.92 8.53 20.6 8.44 21.1 8.44L22.56 8.46C22.95 8.47 23.29 8.68 23.46 9.04L25.17 12.84C25.32 13.18 25.23 13.58 24.96 13.82L24.03 14.65C23.71 14.93 23.63 15.38 23.84 15.75C24.31 16.59 25.4 18.25 26.77 19.56C28.24 20.97 29.62 21.68 30.34 22.02C30.73 22.21 31.19 22.1 31.46 21.78L32.25 20.84C32.52 20.52 32.96 20.4 33.35 20.55L37.38 22.08C37.78 22.23 38.04 22.61 38.04 23.04L37.95 24.52C37.91 25.38 36.03 26.31 34.56 26.59Z" fill="#0068FF"/>
-                        </svg>
-                    </div>
-                    <span class="font-semibold text-sm tracking-wide text-gray-300 group-hover:text-white transition-colors">Zalo</span>
-                </div>
-                <i class="fas fa-chevron-right text-gray-600 text-xs group-hover:translate-x-1 group-hover:text-white transition-all"></i>
-            </a>
-
-        </div>
-
-        <!-- Footer -->
-       <!-- <div class="mt-8 text-[10px] text-gray-500 tracking-widest uppercase">
-            © 2026 Code by D.Nghĩa
-        </div> -->
-
-    </div>
-
-    <!-- 5. Script tự động tạo hạt chuyển động -->
-    <script>
-        const container = document.getElementById('particle-container');
-        const particleCount = 25; // Số lượng đốm sáng trên màn hình cùng lúc
-
-        // Hàm chọn ngẫu nhiên màu cho hạt (xanh lá nhạt, tím nhạt, hoặc trắng xanh)
-        const colors = [
-            'rgba(45, 212, 191, 0.3)',  /* Teal */
-            'rgba(147, 51, 234, 0.25)', /* Purple */
-            'rgba(59, 130, 246, 0.25)', /* Blue */
-            'rgba(255, 255, 255, 0.2)'  /* White */
-        ];
-
-        function createParticle() {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            // Kích thước ngẫu nhiên từ 15px đến 50px
-            const size = Math.random() * 35 + 15;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            // Vị trí xuất phát ngẫu nhiên theo chiều ngang (0% -> 100%)
-            particle.style.left = `${Math.random() * 100}%`;
-            
-            // Thời gian bay ngẫu nhiên từ 8 giây đến 18 giây
-            const duration = Math.random() * 10 + 8;
-            particle.style.animationDuration = `${duration}s`;
-            
-            // Chọn màu ngẫu nhiên cho hạt
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.background = `radial-gradient(circle, ${randomColor} 0%, rgba(255,255,255,0) 70%)`;
-            
-            container.appendChild(particle);
-
-            // Tự động xóa hạt sau khi bay hết màn hình để tránh quá tải bộ nhớ
-            setTimeout(() => {
-                particle.remove();
-            }, duration * 1000);
-        }
-
-        // Tạo trước một số hạt để khi mở trang lên là có sẵn luôn
-        for(let i = 0; i < particleCount; i++) {
-            setTimeout(() => {
-                createParticle();
-                // Cho các hạt đầu tiên xuất phát ở các độ cao khác nhau thay vì từ đáy lên
-                const lastParticle = container.lastChild;
-                if (lastParticle && lastParticle.style) {
-                    lastParticle.style.animationDelay = `-${Math.random() * 15}s`;
-                }
-            }, i * 200);
-        }
-
-        // Liên tục tạo thêm hạt mới sau mỗi khoảng thời gian ngắn
-        setInterval(() => {
-            if (container.children.length < particleCount) {
-                createParticle();
-            }
-        }, 600);
-    </script>
-
+    <footer>Rất vui vì bạn ghé qua 💜</footer>
+  </main>
 </body>
 </html>
